@@ -125,7 +125,8 @@ if (!text) {
 }
 
 return JSON.parse(text);
-
+}
+  
 function looksValid(draft) {
   return (
     draft &&
