@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Overlooked — a daily issue worth knowing</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#15181c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Overlooked">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181c; --paper:#f0ede4; --accent:#3355ff; --accent-soft:#c7d0ff;
+    --red:#ff4fa3; --gold:#ffb703;
+    --muted:#8a8f97; --card:#1e2227; --line:#31363d;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){ --ink:#15181c; --paper:#f0ede4; }
+  }
+  *{box-sizing:border-box}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  body{
+    margin:0; min-height:100%; background:var(--ink); color:var(--paper);
+    font-family:"Space Grotesk", system-ui, sans-serif;
+    display:flex; justify-content:center; padding:48px 20px 64px;
+  }
+  .wrap{ width:100%; max-width:560px; }
+  header{ margin-bottom:28px; }
+  .day-count{
+    font-size:13px; color:var(--muted); letter-spacing:.02em; margin-bottom:6px;
+  }
+  h1{
+    font-family:"Fraunces", serif; font-weight:600; font-size:clamp(28px,6vw,38px);
+    margin:0 0 8px; line-height:1.05;
+  }
+  .tagline{ color:var(--muted); font-size:15px; max-width:44ch; line-height:1.5;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:4px;
+    overflow:hidden; margin-top:28px; border-top:3px solid var(--red);
+  }
+  .card-face{
+    padding:44px 26px; cursor:pointer; user-select:none;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    min-height:150px; justify-content:center; position:relative;
+  }
+  .hook{
+    font-family:"Space Grotesk", system-ui, sans-serif; font-weight:700;
+    font-size:clamp(25px,6vw,32px); line-height:1.2; margin:0;
+    max-width:34ch; color:var(--red); letter-spacing:-0.01em;
+  }
+  .tap-cue{
+    position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+    color:var(--red); opacity:.55; transition:transform .25s ease;
+  }
+  .card.open .tap-cue svg{ transform:rotate(180deg); }
+  .tap-cue svg{ display:block; transition:transform .25s ease; }
+
+  .orgs{
+    max-height:0; overflow:hidden; transition:max-height .35s ease;
+    border-top:1px solid var(--line);
+  }
+  .card.open .orgs{ max-height:800px; }
+  .orgs-inner{ padding:24px 26px 28px; }
+  .cat{ font-size:13px; font-weight:700; color:var(--gold); margin-bottom:10px; }
+  .issue-desc{ color:var(--paper); opacity:.85; font-size:15.5px; line-height:1.6; margin:0 0 22px; }
+  .org-list{ display:flex; flex-direction:column; gap:16px; }
+  .org{ display:block; text-decoration:none; color:inherit; }
+  .org-name{
+    font-weight:700; font-size:15.5px; display:flex; align-items:center; gap:6px;
+  }
+  .org-name svg{ opacity:.6; flex-shrink:0; }
+  .org-blurb{ font-size:14px; color:var(--muted); margin-top:3px; line-height:1.5; }
+
+  .controls{
+    display:flex; gap:10px; margin-top:22px;
+  }
+  button.nav{
+    background:none; border:1px solid var(--line); color:var(--paper);
+    font-family:inherit; font-size:13.5px; padding:9px 16px; border-radius:3px;
+    cursor:pointer;
+  }
+  button.nav:hover{ border-color:var(--accent-soft); }
+  button.nav:focus-visible, .card-face:focus-visible{ outline:2px solid var(--accent-soft); outline-offset:2px; }
+
+  footer{ margin-top:36px; font-size:12.5px; color:var(--muted); line-height:1.6; }
+
+  @media (prefers-reduced-motion: reduce){
+    .orgs, .tap-cue svg{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="day-count" id="dayCount"></div>
+    <h1>Overlooked</h1>
+    <p class="tagline">only if you knew sooner</p>
+  </header>
+
+  <div class="card" id="card">
+    <div class="card-face" id="cardFace" tabindex="0" role="button" aria-expanded="false">
+      <p class="hook" id="hookText"></p>
+      <span class="tap-cue" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </span>
+    </div>
+    <div class="orgs" id="orgsPanel">
+      <div class="orgs-inner">
+        <div class="cat" id="cat"></div>
+        <p class="issue-desc" id="issueDesc"></p>
+        <div class="org-list" id="orgsInner"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="nav" id="prevBtn">← Yesterday's</button>
+    <button class="nav" id="todayBtn">Today</button>
+    <button class="nav" id="nextBtn">Tomorrow's →</button>
+  </div>
+
+  <footer>New issue each day, cycling through a running list. Links go to each organization's official site — always worth verifying independently before acting.</footer>
+</div>
+
+<script>
+// Small built-in fallback in case issues.json can't be fetched (e.g. offline on first-ever load).
+const SEED_ISSUES = [
+  {cat:"Criminal justice", hook:"You haven't been convicted of anything. You're just too poor to leave jail.",
+    desc:"People who can't afford bail sit in jail awaiting trial — sometimes longer than the sentence for the crime they're accused of — while those with money go free.",
+    orgs:[{name:"The Bail Project", url:"https://bailproject.org", blurb:"Pays bail for people who can't afford it and connects them to support services."}]},
+  {cat:"Women's rights", hook:"Doing the same job, women are still handed a smaller paycheck.",
+    desc:"Full-time working women in the U.S. are paid roughly 84 cents for every dollar paid to men, a gap that widens further for women of color.",
+    orgs:[{name:"National Women's Law Center", url:"https://nwlc.org", blurb:"Litigation and policy advocacy for equal pay and workplace protections."}]},
+  {cat:"Education rights", hook:"A kid's zip code can decide whether their school even has working textbooks.",
+    desc:"Families in low-income districts often have no way to leave a struggling school, while wealthier families can simply move or pay for private options.",
+    orgs:[{name:"EdChoice", url:"https://www.edchoice.org", blurb:"Research and advocacy for school choice and education savings accounts."}]}
+];
+
+let ISSUES = SEED_ISSUES;
+
+async function loadIssues(){
+  // Network-first: try to fetch the live, growing list; fall back to last cached copy; fall back to seed.
+  try{
+    const res = await fetch('issues.json', { cache: 'no-store' });
+    if(!res.ok) throw new Error('bad response');
+    const fresh = await res.json();
+    if(Array.isArray(fresh) && fresh.length){
+      ISSUES = fresh;
+      try{ localStorage.setItem('overlooked_issues_cache', JSON.stringify(fresh)); }catch(e){}
+      return;
+    }
+  }catch(e){
+    try{
+      const cached = localStorage.getItem('overlooked_issues_cache');
+      if(cached){ ISSUES = JSON.parse(cached); return; }
+    }catch(e2){}
+  }
+  ISSUES = SEED_ISSUES;
+}
+
+function dayOfYear(d){
+  const start = new Date(d.getFullYear(),0,0);
+  return Math.floor((d - start) / 86400000);
+}
+function getOffsetDate(offset){
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d;
+}
+let offset = 0;
+
+const dayCountEl = document.getElementById('dayCount');
+const catEl = document.getElementById('cat');
+const hookEl = document.getElementById('hookText');
+const descEl = document.getElementById('issueDesc');
+const orgsInner = document.getElementById('orgsInner');
+const card = document.getElementById('card');
+const cardFace = document.getElementById('cardFace');
+
+const linkIcon = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 7.5L7.5 4.5M7.5 4.5H5M7.5 4.5V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function render(){
+  const date = getOffsetDate(offset);
+  const idx = ((dayOfYear(date) % ISSUES.length) + ISSUES.length) % ISSUES.length;
+  const issue = ISSUES[idx];
+
+  const label = offset === 0 ? "Today" : date.toLocaleDateString(undefined,{month:'long', day:'numeric'});
+  dayCountEl.textContent = `${label} · issue ${idx + 1} of ${ISSUES.length}`;
+
+  hookEl.textContent = issue.hook;
+  catEl.textContent = issue.cat;
+  descEl.textContent = issue.desc;
+
+  orgsInner.innerHTML = issue.orgs.map(o => `
+    <a class="org" href="${o.url}" target="_blank" rel="noopener noreferrer">
+      <div class="org-name">${o.name} ${linkIcon}</div>
+      <div class="org-blurb">${o.blurb}</div>
+    </a>
+  `).join('');
+
+  card.classList.remove('open');
+  cardFace.setAttribute('aria-expanded','false');
+}
+
+function toggleOpen(){
+  const open = card.classList.toggle('open');
+  cardFace.setAttribute('aria-expanded', open ? 'true':'false');
+}
+cardFace.addEventListener('click', toggleOpen);
+cardFace.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleOpen(); } });
+
+document.getElementById('prevBtn').addEventListener('click', () => { offset -= 1; render(); });
+document.getElementById('nextBtn').addEventListener('click', () => { offset += 1; render(); });
+document.getElementById('todayBtn').addEventListener('click', () => { offset = 0; render(); });
+
+(async () => {
+  await loadIssues();
+  render();
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => console.warn("SW registration failed:", err));
+  });
+}
+</script>
+</body>
+</html>
