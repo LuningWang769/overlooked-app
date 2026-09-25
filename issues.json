@@ -273,5 +273,22 @@
         "blurb": "Builds support across the political spectrum for practical immigration reform."
       }
     ]
+  },
+  {
+    "cat": "Women's rights",
+    "hook": "No girl should have to miss school simply because she started her period.",
+    "desc": "Period poverty affects an estimated 500 million people worldwide who lack access to menstrual products and adequate sanitation facilities. In the United States, one in four menstruating teens has struggled to afford period products, leading to missed school days and heightened health risks.",
+    "orgs": [
+      {
+        "name": "PERIOD.",
+        "url": "https://period.org",
+        "blurb": "A youth-powered nonprofit working to eradicate period poverty through direct product distribution, education, and legislative advocacy."
+      },
+      {
+        "name": "Days for Girls",
+        "url": "https://www.daysforgirls.org",
+        "blurb": "An international organization providing reusable menstrual health kits and education to women and girls globally."
+      }
+    ]
   }
 ]
