@@ -103,7 +103,7 @@ ${recentTitles}`;
       ],
       generationConfig: {
         responseMimeType: "application/json",
-        maxOutputTokens: 700,
+        maxOutputTokens: 2000,
       },
     }),
   }
