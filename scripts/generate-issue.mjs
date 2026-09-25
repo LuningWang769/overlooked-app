@@ -11,9 +11,9 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ISSUES_PATH = path.join(__dirname, "..", "issues.json");
 
-const API_KEY = process.env.ANTHROPIC_API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
-  console.error("Missing ANTHROPIC_API_KEY environment variable.");
+  console.error("Missing GEMINI_API_KEY environment variable.");
   process.exit(1);
 }
 
@@ -83,31 +83,48 @@ Rules:
 Issues already used recently, do not repeat these or anything too similar:
 ${recentTitles}`;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+  {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-      "anthropic-version": "2023-06-01",
+      "x-goog-api-key": API_KEY,
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 700,
-      system: systemPrompt,
-      messages: [{ role: "user", content: "Generate one new issue now." }],
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: "Generate one new issue now." }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 700,
+      },
     }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Anthropic API error ${res.status}: ${await res.text()}`);
   }
-  const data = await res.json();
-  const text = data.content
-    .map((block) => block.text || "")
-    .join("")
-    .trim();
-  return JSON.parse(text);
+);
+
+if (!res.ok) {
+  throw new Error(`Gemini API error ${res.status}: ${await res.text()}`);
 }
+
+const data = await res.json();
+
+const text = data.candidates?.[0]?.content?.parts
+  ?.map((part) => part.text || "")
+  .join("")
+  .trim();
+
+if (!text) {
+  throw new Error("Gemini returned no text.");
+}
+
+return JSON.parse(text);
 
 function looksValid(draft) {
   return (
